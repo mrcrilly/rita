@@ -1,0 +1,16 @@
+---
+site:
+    title: mtc
+    author: Michael Crilly
+    tld: mcrilly.me
+    contact:
+       email: michael@mcrilly.me
+       twitter: "@nonexistent"
+       irc: movedx/Freenode/##security
+
+templates:
+    path: templates/
+
+articles:
+    path: articles/
+
