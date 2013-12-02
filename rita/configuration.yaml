@@ -1,6 +1,6 @@
 ---
 site:
-    title: mtc
+    blog_title: mtc
     author: Michael Crilly
     tld: mcrilly.me
     contact:
@@ -8,9 +8,11 @@ site:
        twitter: "@nonexistent"
        irc: movedx/Freenode/##security
 
-templates:
-    path: templates/
+template:
+    localPath: templates
+    name: development
 
 articles:
-    path: articles/
-
+    localPath: articles
+    publishPath: website
+    indexPath: website
