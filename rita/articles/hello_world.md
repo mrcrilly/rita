@@ -1,8 +1,7 @@
 Title: Hello, world
 Author: Michael Crilly
-Tags: LOL cats boobs
-Draft: True
-Published: 2011-11-30 21:17:00
+Tags: hello salutations Earth
+Published: 2011-11-30
 
 Hello, world
 ============

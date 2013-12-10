@@ -12,7 +12,13 @@ template:
     localPath: templates
     name: development
 
+index:
+    publishPath: website
+
 articles:
     localPath: articles
     publishPath: website
-    indexPath: website
+
+pages:
+    localPath: pages
+    publishPath: website
