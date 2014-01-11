@@ -15,11 +15,10 @@ j2 	 = jinja2.Environment(loader=j2_l)
 
 def buildMetaData(items):
 	metadata = {}
-	metadata_re = re.compile('^(?P<key>[A-Za-z]+?\:)[ ](?P<value>.*)$')
+	metadata_re = re.compile('^(?P<key>[A-Za-z0-9]+?\:)[ ](?P<value>.*)$')
 
 	for i in items:
 		for x in i[2]: 
-			print i[0][:-1]
 			metadata[x] = {
 				'html_file': "{0}".format(x.replace('md', 'html')),
 				'meta_lines': 0,
@@ -36,6 +35,7 @@ def buildMetaData(items):
 					else:
 						break
 
+	print metadata
 	return metadata
 
 def buildAndWriteArticles(articles):
@@ -54,11 +54,20 @@ def buildAndWriteArticles(articles):
 				fd.write(template.render(site = config, content = md))
 
 def buildAndWriteContent(contentItems):
-	template = j2.get_template(contentItems['template'])
-	raw_md = None
+	for x in contentItems:
+		template = j2.get_template(contentItems[x]['template'])
+		owner = contentItems[x]['owner']
+		write_path = "{0}/{1}".format(config[owner]['localPath'], x)
 
-	# for x in contentItems:
-	# 	with codecs.open("{0}/{1}".format(config[x['owner']]['localPath']), x)
+		with codecs.open(write_path, encoding='utf-8') as fd:
+			raw_md = ''.join([str(y) for y in fd.readlines()[ contentItems[x]['meta_lines'] + 1: ]])
+			md = markdown.markdown(raw_md)
+
+		# print "X: {0}".format(x)
+		# print "Content Items: {0}".format(contentItems[x])
+		with open("{0}/{1}".format(config[owner]['publishPath'], contentItems[x]['html_file']), 'w+') as fd:
+			print("Writing HTML")
+			fd.write(template.render(site = config, content = md))
 
 # def buildAndWritePages(pages):
 # 	template = j2.get_template('page.html')
@@ -71,7 +80,7 @@ def buildAndWriteContent(contentItems):
 
 def buildAndWriteIndex(articles):
 	template = j2.get_template('index.html')
-	with open("{0}/{1}".format(config['articles']['indexPath'], 'index.html'), 'w+') as html_out:
+	with open("{0}/{1}".format(config['index']['publishPath'], 'index.html'), 'w+') as html_out:
 		html_out.write(template.render(site = config['site'], articles = articles))
 
 def copyTemplateAssests():
@@ -94,12 +103,14 @@ if __name__ == "__main__":
 		articles 	= buildMetaData(article_list)
 		pages 		= buildMetaData(page_list)
 
-		print articles
-
-		sys.exit()
+		# for x in articles:
+		# 	print articles[x]['owner']
 
 		copyTemplateAssests()
 		buildAndWriteIndex(articles)
-		buildAndWriteArticles(articles)
-		buildAndWritePages(pages)
+		# buildAndWriteArticles(articles)
+		# buildAndWritePages(pages)
+
+		buildAndWriteContent(articles)
+		buildAndWriteContent(pages)
 

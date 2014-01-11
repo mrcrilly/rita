@@ -4,7 +4,7 @@
 {% for a in articles -%}
 <div class="row article-link">
 	<div class="col-lg-8 article-link-title">
-		<a href="{{ articles[a]['html'] }}">{{ articles[a]['title'] }}</a>
+		<a href="{{ articles[a]['html_file'] }}">{{ articles[a]['title'] }}</a>
 	</div>
 	<div class="col-lg-4 article-link-date">
 		<p>Published: {{ articles[a]['published'] }}</p>
