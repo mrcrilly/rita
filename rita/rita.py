@@ -15,6 +15,16 @@ j2_l = jinja2.FileSystemLoader("{0}/{1}".format(config['template']['localPath'],
 j2 	 = jinja2.Environment(loader=j2_l)
 
 def buildMetaData(items):
+	"""
+	Read the header of the Markdown file and extract the metadata.
+
+	Arguments:
+	items -- a tuple as returned by os.walk()
+
+	Returns:
+	metadata -- dictionary of metadata for each article/page
+	"""
+
 	metadata = {}
 	metadata_re = re.compile('^(?P<key>[A-Za-z0-9]+?\:)[ ](?P<value>.*)$')
 
@@ -54,6 +64,13 @@ def buildAndWriteArticles(articles):
 				fd.write(template.render(site = config, content = md))
 
 def buildAndWriteContent(contentItems):
+	"""
+	Reads a metadata hash and builds the HTML from the Markdown. Uses templating.
+
+	Arguments:
+	contentItems -- dictionary containing the items and their metadata
+	"""
+
 	for x in contentItems:
 		template = j2.get_template(contentItems[x]['template'])
 		owner = contentItems[x]['owner']
@@ -67,17 +84,27 @@ def buildAndWriteContent(contentItems):
 			fd.write(template.render(site = config, content = md))
 
 def buildAndWriteIndex(articles):
+	"""
+	Passes an articles object to a template and writes out the resulting HTML
+
+	Arguments:
+	articles -- dictionary object for articles to be indexed.
+	"""
+
 	template = j2.get_template('index.html')
 	with open("{0}/{1}".format(config['index']['publishPath'], 'index.html'), 'w+') as html_out:
 		html_out.write(template.render(site = config['site'], articles = articles))
 
 def copyTemplateAssests():
+	""" Copy into place everything the template includes, such as static files """
+
 	template = "{0}/{1}".format(config['template']['localPath'], config['template']['name'])
 
 	if os.path.exists(template):
 		shutil.copytree(template, config['articles']['publishPath'], ignore=shutil.ignore_patterns("*.html"))
 
 def cleanWebsite():
+	""" Clean up the publish path """
 	if os.path.exists(config['index']['publishPath']):
 		shutil.rmtree(config['index']['publishPath'])
 
@@ -97,4 +124,5 @@ if __name__ == "__main__":
 
 		buildAndWriteContent(articles)
 		buildAndWriteContent(pages)
-
+	else:
+		print "Configuration failure"
