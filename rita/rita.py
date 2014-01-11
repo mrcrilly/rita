@@ -26,7 +26,7 @@ def buildMetaData(items):
 	"""
 
 	metadata = {}
-	metadata_re = re.compile('^(?P<key>[A-Za-z0-9]+?\:)[ ](?P<value>.*)$')
+	metadata_re = re.compile('^(?P<key>[A-Za-z0-9]+?\:)[ ]?(?P<value>.*)$')
 
 	for i in items:
 		for x in i[2]: 
@@ -117,6 +117,9 @@ if __name__ == "__main__":
 
 		articles 	= buildMetaData(article_list)
 		pages 		= buildMetaData(page_list)
+
+		print articles
+		sys.exit()
 
 		copyTemplateAssests()
 
