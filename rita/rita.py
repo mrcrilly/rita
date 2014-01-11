@@ -4,6 +4,7 @@
 # Simple static site generator
 #
 # Michael Crilly <michael@mcrilly.me>
+# @mrmcrilly
 
 import sys, os, codecs, re, shutil, errno
 import markdown, jinja2, yaml
@@ -35,7 +36,6 @@ def buildMetaData(items):
 					else:
 						break
 
-	print metadata
 	return metadata
 
 def buildAndWriteArticles(articles):
@@ -63,20 +63,8 @@ def buildAndWriteContent(contentItems):
 			raw_md = ''.join([str(y) for y in fd.readlines()[ contentItems[x]['meta_lines'] + 1: ]])
 			md = markdown.markdown(raw_md)
 
-		# print "X: {0}".format(x)
-		# print "Content Items: {0}".format(contentItems[x])
 		with open("{0}/{1}".format(config[owner]['publishPath'], contentItems[x]['html_file']), 'w+') as fd:
-			print("Writing HTML")
 			fd.write(template.render(site = config, content = md))
-
-# def buildAndWritePages(pages):
-# 	template = j2.get_template('page.html')
-# 	raw_md = None
-
-# 	for p in pages:
-# 		with codecs.open("{0}/{1}".format(config['pages']['localPath'], p), encoding='utf-8') as fd:
-# 			raw_md = ''.join([str(x) for x in fd.readlines()[ pages[p]['meta_lines'] + 1: ]])
-# 			md = markdown.markdown(raw_md)
 
 def buildAndWriteIndex(articles):
 	template = j2.get_template('index.html')
@@ -103,13 +91,9 @@ if __name__ == "__main__":
 		articles 	= buildMetaData(article_list)
 		pages 		= buildMetaData(page_list)
 
-		# for x in articles:
-		# 	print articles[x]['owner']
-
 		copyTemplateAssests()
+
 		buildAndWriteIndex(articles)
-		# buildAndWriteArticles(articles)
-		# buildAndWritePages(pages)
 
 		buildAndWriteContent(articles)
 		buildAndWriteContent(pages)
