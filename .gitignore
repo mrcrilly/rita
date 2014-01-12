@@ -1,6 +1,2 @@
 *.DS_Store
 *.pyc
-website/
-templates/
-articles/
-pages/
