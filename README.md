@@ -1,20 +1,36 @@
 Rita
 ====
+
 Rita is a simple static website generator similar to Pelican, but a lot more simple in design, code and use.
 
-I just wanted something I provided a template and a set of Markdown files to, which it then used to produce a flat (in directory structure), static website consistenting of the template's requirements (any JavaScript files, etc) and pure HTML.
+The aim is to have a single script with no command line flags, making operation simple. You run it, and provided all the right files are in the right place, as documented below, your static website will be generated.
+
+Dependencies
+------------
+
+* Jinja2
+* Markdown
+* PyYaml
+
+These can be installed via pip.
 
 Usage
 -----
+
+Execution is simple. There are no command line flags, just a configuration file:
+
 $ python rita.py
 
-Your Markdown articles (*.md) from 'articles' will be taken, processed, and planted as HTML files in whatever publish path you stated in the configuration.yaml file. It's really simple.
+Your Markdown articles (*.md) from your configured articles path will be taken, processed, and planted as HTML files in the publish path you've stated in the configuration.yaml file. It's really simple.
+
+Rita can also generate pages from your pages path. These are processed in a similar fashion and output accordingly.
 
 Metadata
 --------
-Articles support metadata. Simply put, they're a "Key: value" pair on separate lines. The 'key' is a proper-noun and there is a space between the ':' and the value. A regular expression looks for this exact format at the top of the file. The moment the regular expression starts finding this matter is the moment the metadata has come to and end. Therefore a new line or some other pattern that doesn't match stops the metadata search.
 
-Example Markdown articles are provided with example data. 
+Articles support metadata. They're defined via a "key:value" pair on separate lines located at the start of an article or page. The colon (':') is not optional, but it can have a single space either side if this makes things easier to read.
+
+Metadata is extracted and used to generate the article HTML files. It's also passed through to the Jinja2 templating engine, so you can re-use this metadata as and when you see fit.
 
 License
 -------
