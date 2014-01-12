@@ -118,9 +118,6 @@ if __name__ == "__main__":
 		articles 	= buildMetaData(article_list)
 		pages 		= buildMetaData(page_list)
 
-		print articles
-		sys.exit()
-
 		copyTemplateAssests()
 
 		buildAndWriteIndex(articles)
