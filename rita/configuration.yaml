@@ -6,19 +6,21 @@ site:
     contact:
        email: michael@mcrilly.me
        twitter: "@mrmcrilly"
-       irc: movedx/Freenode/##security
+       irc: movedx/Freenode/#puppet
 
 template:
-    localPath: templates
+    localPath: "../data/templates"
     name: development
 
 index:
-    publishPath: website
+    publishPath: "../data/website"
 
 articles:
-    localPath: articles
-    publishPath: website
+    localPath: "../data/articles"
+    publishPath: "../data/website"
+    template: article.html
 
 pages:
-    localPath: pages
-    publishPath: website
+    localPath: "../data/pages"
+    publishPath: "../data/website"
+    template: page.html
