@@ -60,6 +60,9 @@ class Rita:
         if self.config:
             contentpath = self.config['core']['content']['foundin']
 
+            # Because os.walk() gives us a generator, we can only loop
+            # over it once before exhausting the values, so we do so here
+            # and safe the results
             for item in os.walk(contentpath):
             	self.site['content']['raw'][item[0]] = item[2]
 
