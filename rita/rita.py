@@ -6,123 +6,136 @@
 # Michael Crilly <michael@mcrilly.me>
 # @mrmcrilly
 
-import sys, os, codecs, re, shutil, errno
-import markdown, jinja2, yaml
+import sys, os, codecs, re, shutil, errno, markdown, jinja2, yaml
 
-config = yaml.safe_load(open('./configuration.yaml'))
+class Rita:
 
-j2_l = jinja2.FileSystemLoader("{0}/{1}".format(config['template']['localPath'], config['template']['name']))
-j2 	 = jinja2.Environment(loader=j2_l)
+	def __init__(self, config=None):
+		if not config:
+			self.config = yaml.safe_load(open('./configuration.yaml'))
+		else:
+			self.config = config
 
-def buildMetaData(items):
-	"""
-	Read the header of the Markdown file and extract the metadata.
+		self.template_environment()
 
-	Arguments:
-	items -- a tuple as returned by os.walk()
-
-	Returns:
-	metadata -- dictionary of metadata for each article/page
-	"""
-
-	metadata = {}
-	metadata_re = re.compile('^(?P<key>[A-Za-z0-9]+?)[ ]?\:[ ]?(?P<value>.*)$')
-
-	for i in items:
-		for x in i[2]: 
-			metadata[x] = {
-				'html_file': "{0}".format(x.replace('md', 'html')),
-				'meta_lines': 0,
-				'template': "{0}.html".format(i[0][:-1]),
-				'owner': i[0]
+		# We start of with an empty site until we populate it
+		self.site = {
+			'content': {
+				'raw': {},
+				'processed': {}
 			}
+		}
 
-			with codecs.open("{0}/{1}".format(config[i[0]]['localPath'], x), encoding='utf-8') as raw_md:
-				for line in raw_md:
-					meta = metadata_re.search(line)
-					if meta:
-						metadata[x][meta.group('key').lower()] = meta.group('value')
-						metadata[x]['meta_lines'] += 1
-					else:
-						break
+	def build(self):
+		"""
+		This method does it all. It's the only method that needs to be called.
+		"""
 
-	return metadata
+		self.gather_content()
+		self.process_content()
+		self.write_html()
 
-def buildAndWriteArticles(articles):
-	template = j2.get_template('article.html')
-	raw_md = None
 
-	for a in articles:
-		with codecs.open("{0}/{1}".format(config['articles']['localPath'], a), encoding='utf-8') as fd:
-			# Not so obvious, but we're using a join to take an array and make a string from it.
-			# We're also using a for-loop comprehension to read the lines, in one go, and then
-			# slicing the array to skip over the meta data in the document.
-			raw_md = ''.join([str(x) for x in fd.readlines()[ articles[a]['meta_lines'] + 1: ]])
-			md = markdown.markdown(raw_md)
+	def template_environment(self):
+		template 	= self.config['core']['templates']
+		loader 		= jinja2.FileSystemLoader("{0}/{1}".format(template['foundin'], template['use']))
 
-			with open("{0}/{1}".format(config['articles']['publishPath'], articles[a]['html']), 'w+') as fd:
-				fd.write(template.render(site = config, content = md))
+		self.jinja 	= jinja2.Environment(loader=loader)
 
-def buildAndWriteContent(contentItems):
-	"""
-	Reads a metadata hash and builds the HTML from the Markdown. Uses templating.
+	def abort(self, message):
+		print "Abort: {0}".format(message)
+		sys.exit(1)
 
-	Arguments:
-	contentItems -- dictionary containing the items and their metadata
-	"""
+	def gather_content(self):
+		if self.config:
+			contentpath = self.config['core']['content']['foundin']
+			self.site['content']['raw'] = os.walk(contentpath)
+		else:
+			self.abort("No configuration found/defined.")
 
-	for x in contentItems:
-		template = j2.get_template(contentItems[x]['template'])
-		owner = contentItems[x]['owner']
-		write_path = "{0}/{1}".format(config[owner]['localPath'], x)
+	def process_content(self):
+		if self.config and self.site['content']['raw']:
+			content = self.site['content']['raw']
+			md_file_pattern = re.compile('^.*\.md$')
 
-		with codecs.open(write_path, encoding='utf-8') as fd:
-			raw_md = ''.join([str(y) for y in fd.readlines()[ contentItems[x]['meta_lines'] + 1: ]])
-			md = markdown.markdown(raw_md)
+			for path in content:
+				if len(path[2]) > 0:
+					for file in path[2]:
+						if md_file_pattern.search(file):
+							self.process_markdown(os.path.abspath(path[0]), file)
 
-		with open("{0}/{1}".format(config[owner]['publishPath'], contentItems[x]['html_file']), 'w+') as fd:
-			fd.write(template.render(site = config, content = md))
+	def process_markdown(self, path, file):
+		if self.config and self.site['content']:
+			meta_re = re.compile('^(?P<key>[A-Za-z0-9_-]+?)[ ]?\:[ ]?(?P<value>.*)$')
 
-def buildAndWriteIndex(articles):
-	"""
-	Passes an articles object to a template and writes out the resulting HTML
+			with codecs.open("{0}/{1}".format(path, file), encoding='utf-8') as fd:
+				target = self.site['content']['processed']["{0}/{1}".format(path, file)] = {
+					'metadata': {},
+					'html': ""
+				}
 
-	Arguments:
-	articles -- dictionary object for articles to be indexed.
-	"""
+				for line in fd:
+					regex = meta_re.search(line)
+					if regex:
+						target['metadata'][regex.group('key').lower()] = regex.group('value')
 
-	template = j2.get_template('index.html')
-	with open("{0}/{1}".format(config['index']['publishPath'], 'index.html'), 'w+') as html_out:
-		html_out.write(template.render(site = config['site'], articles = articles))
+				# reset the file pointer so we can work the file again
+				fd.seek(0)
 
-def copyTemplateAssests():
-	""" Copy into place everything the template includes, such as static files """
+				raw_md = ''.join([str(x) for x in fd.readlines()[ len(target['metadata']) + 1: ]])
+				target['html'] = markdown.markdown(raw_md)
 
-	template = "{0}/{1}".format(config['template']['localPath'], config['template']['name'])
+	def write_html(self):
+		if self.config and self.site['content']:
+			for content in self.site['content']['processed']:
+				pass
 
-	if os.path.exists(template):
-		shutil.copytree(template, config['articles']['publishPath'], ignore=shutil.ignore_patterns("*.html"))
 
-def cleanWebsite():
-	""" Clean up the publish path """
-	if os.path.exists(config['index']['publishPath']):
-		shutil.rmtree(config['index']['publishPath'])
+	# def buildAndWriteContent(contentItems):
+	# 	"""
+	# 	Reads a metadata hash and builds the HTML from the Markdown. Uses templating.
+
+	# 	Arguments:
+	# 	contentItems -- dictionary containing the items and their metadata
+	# 	"""
+
+	# 	for x in contentItems:
+	# 		template = j2.get_template(contentItems[x]['template'])
+	# 		owner = contentItems[x]['owner']
+	# 		write_path = "{0}/{1}".format(config[owner]['localPath'], x)
+
+	# 		with codecs.open(write_path, encoding='utf-8') as fd:
+	# 			raw_md = ''.join([str(y) for y in fd.readlines()[ contentItems[x]['meta_lines'] + 1: ]])
+	# 			md = markdown.markdown(raw_md)
+
+	# 		with open("{0}/{1}".format(config[owner]['publishPath'], contentItems[x]['html_file']), 'w+') as fd:
+	# 			fd.write(template.render(site = config, content = md))
+
+	# def buildAndWriteIndex(articles):
+	# 	"""
+	# 	Passes an articles object to a template and writes out the resulting HTML
+
+	# 	Arguments:
+	# 	articles -- dictionary object for articles to be indexed.
+	# 	"""
+
+	# 	template = j2.get_template('index.html')
+	# 	with open("{0}/{1}".format(config['index']['publishPath'], 'index.html'), 'w+') as html_out:
+	# 		html_out.write(template.render(site = config['site'], articles = articles))
+
+	# def copyTemplateAssests():
+	# 	""" Copy into place everything the template includes, such as static files """
+
+	# 	template = "{0}/{1}".format(config['template']['localPath'], config['template']['name'])
+
+	# 	if os.path.exists(template):
+	# 		shutil.copytree(template, config['articles']['publishPath'], ignore=shutil.ignore_patterns("*.html"))
+
+	# def cleanWebsite():
+	# 	""" Clean up the publish path """
+	# 	if os.path.exists(config['index']['publishPath']):
+	# 		shutil.rmtree(config['index']['publishPath'])
 
 if __name__ == "__main__":
-	if config:
-		cleanWebsite()
-
-		article_list = os.walk(config['articles']['localPath'])
-		page_list	 = os.walk(config['pages']['localPath'])
-
-		articles 	= buildMetaData(article_list)
-		pages 		= buildMetaData(page_list)
-
-		copyTemplateAssests()
-
-		buildAndWriteIndex(articles)
-
-		buildAndWriteContent(articles)
-		buildAndWriteContent(pages)
-	else:
-		print "Configuration failure"
+	site = Rita()
+	site.build()
