@@ -1,24 +1,17 @@
 ---
+core:
+  templates:
+    foundin: /home/mcrilly/.rita/templates/
+    use: development
+  content:
+    foundin: /home/mcrilly/.rita/content/
+
 site:
-    blog_title: mtc
-    author: Michael Crilly
-    tld: http://mcrilly.me
-    contact:
-       email: michael@mcrilly.me
-       twitter: "@mrmcrilly"
-       irc: movedx/Freenode/##security
+  blog_title: mtc
+  author: Michael Crilly
+  tld: http://mcrilly.me
+  contact:
+    email: michael@mcrilly.me
+    twitter: "@mrmcrilly"
+    irc: movedx/Freenode/##security
 
-template:
-    localPath: templates
-    name: development
-
-index:
-    publishPath: website
-
-articles:
-    localPath: articles
-    publishPath: website
-
-pages:
-    localPath: pages
-    publishPath: website
