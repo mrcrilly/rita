@@ -76,15 +76,15 @@ class Rita:
 		self.articles['content'] 	= self.buildMetadata(self.articles)
 		self.pages['content'] 		= self.buildMetadata(self.pages)
 
+		self.convertMarkdown(self.articles)
+		self.convertMarkdown(self.pages)
+
 		if self.debugging:
 			self._debug(self.articles)
 			self._debug(self.pages)
 
-		self.convertMarkdown(self.articles)
-		self.convertMarkdown(self.pages)
-
-		self.copyTemplateAssests()
-		self.buildAndWriteIndex()
+		# self.copyTemplateAssests()
+		# self.buildAndWriteIndex()
 
 	def buildMetadata(self, items):
 		"""
@@ -133,7 +133,11 @@ class Rita:
 
 	def convertMarkdown(self, contentItems):
 		for i in contentItems['content']:
-			template = self.j2.get_template(i['meta']['htmlfile'])
+			# template = self.j2.get_template(i['meta']['htmlfile'])
+
+			with codecs.open("{0}/{1}".format(self.config[contentItems['type']]['localPath'], i)) as fd:
+				raw_md = ''.join([str(y) for y in fd.readlines()[ len(contentItems['content'][i]['meta']): ]])
+				contentItems['content'][i]['markdown'] = markdown.markdown(raw_md)
 
 	def buildAndWriteContent(self, contentItems):
 		"""
