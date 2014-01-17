@@ -11,12 +11,23 @@ import sys, os, codecs, re, shutil, errno, markdown, jinja2, yaml
 class Rita:
 
 	def __init__(self, config=None):
+		"""
+		Setup environment for templates and processing content.
+
+		Arguments:
+		config -- A dictionary with (at minimum) a 'core' key and associated values.
+		"""
+
 		if not config:
 			self.config = yaml.safe_load(open('./configuration.yaml'))
 		else:
-			self.config = config
+			if 'core' in config:
+				self.config = config
+			else:
+				self.log("Your provided configuration is invalid.", "error")
+				sys.exit(1)
 
-		self.template_environment()
+		self.debugging = self.config['core']['runtime']['debug']
 
 		# We start of with an empty site until we populate it
 		self.site = {
@@ -31,10 +42,10 @@ class Rita:
 		This method does it all. It's the only method that needs to be called.
 		"""
 
+		self.template_environment()
 		self.gather_content()
 		self.process_content()
 		self.write_html()
-
 
 	def template_environment(self):
 		template 	= self.config['core']['templates']
@@ -42,27 +53,47 @@ class Rita:
 
 		self.jinja 	= jinja2.Environment(loader=loader)
 
-	def abort(self, message):
-		print "Abort: {0}".format(message)
-		sys.exit(1)
+	def log(self, message, severity="debug"):
+		print "{0}: {1}".format(severity, message)
 
 	def gather_content(self):
 		if self.config:
 			contentpath = self.config['core']['content']['foundin']
 			self.site['content']['raw'] = os.walk(contentpath)
+
+			if self.debugging:
+				self.log("contentpath: {0}".format(contentpath))
+				self.log("raw content: {0}".format([i for i in self.site['content']['raw']]))
 		else:
-			self.abort("No configuration found/defined.")
+			self.log("no configuration found/defined.", "error")
+			sys.exit(1)
 
 	def process_content(self):
-		if self.config and self.site['content']['raw']:
+		if self.config:
+			if self.debugging: self.log("process_content()")
+
+			for i in self.site['content']['raw']:
+				print i
+
 			content = self.site['content']['raw']
+			if self.debugging: self.log("content: {}".format([i for i in content]))
+
 			md_file_pattern = re.compile('^.*\.md$')
 
 			for path in content:
+				if self.debugging: self.log("path: {}".format(path))
+
 				if len(path[2]) > 0:
+					if self.debugging: self.log("path: {0}: has files".format(path))
+
 					for file in path[2]:
+						if self.debugging: self.log("file: {0}".format(file))
 						if md_file_pattern.search(file):
+							if self.debugging: self.log("file matched: {}".format(file))
 							self.process_markdown(os.path.abspath(path[0]), file)
+		else:
+			self.log("no configuration or raw content.", "error")
+			sys.exit(1)
 
 	def process_markdown(self, path, file):
 		if self.config and self.site['content']:
@@ -88,53 +119,7 @@ class Rita:
 	def write_html(self):
 		if self.config and self.site['content']:
 			for content in self.site['content']['processed']:
-				pass
-
-
-	# def buildAndWriteContent(contentItems):
-	# 	"""
-	# 	Reads a metadata hash and builds the HTML from the Markdown. Uses templating.
-
-	# 	Arguments:
-	# 	contentItems -- dictionary containing the items and their metadata
-	# 	"""
-
-	# 	for x in contentItems:
-	# 		template = j2.get_template(contentItems[x]['template'])
-	# 		owner = contentItems[x]['owner']
-	# 		write_path = "{0}/{1}".format(config[owner]['localPath'], x)
-
-	# 		with codecs.open(write_path, encoding='utf-8') as fd:
-	# 			raw_md = ''.join([str(y) for y in fd.readlines()[ contentItems[x]['meta_lines'] + 1: ]])
-	# 			md = markdown.markdown(raw_md)
-
-	# 		with open("{0}/{1}".format(config[owner]['publishPath'], contentItems[x]['html_file']), 'w+') as fd:
-	# 			fd.write(template.render(site = config, content = md))
-
-	# def buildAndWriteIndex(articles):
-	# 	"""
-	# 	Passes an articles object to a template and writes out the resulting HTML
-
-	# 	Arguments:
-	# 	articles -- dictionary object for articles to be indexed.
-	# 	"""
-
-	# 	template = j2.get_template('index.html')
-	# 	with open("{0}/{1}".format(config['index']['publishPath'], 'index.html'), 'w+') as html_out:
-	# 		html_out.write(template.render(site = config['site'], articles = articles))
-
-	# def copyTemplateAssests():
-	# 	""" Copy into place everything the template includes, such as static files """
-
-	# 	template = "{0}/{1}".format(config['template']['localPath'], config['template']['name'])
-
-	# 	if os.path.exists(template):
-	# 		shutil.copytree(template, config['articles']['publishPath'], ignore=shutil.ignore_patterns("*.html"))
-
-	# def cleanWebsite():
-	# 	""" Clean up the publish path """
-	# 	if os.path.exists(config['index']['publishPath']):
-	# 		shutil.rmtree(config['index']['publishPath'])
+				print content
 
 if __name__ == "__main__":
 	site = Rita()
