@@ -29,46 +29,26 @@ Configuration
 There is a 'configuration.yaml' file located in the same directory as 'rita.py'. This file is used to configure the location of various elements:
 
 * Templates
-* Articles
-* Pages
-* Generated static content: where it's published
+* Content
+* Dynamic information, such as site information
+** This data is passed through to the templates
+** It's ideal for contact information, site title, etc
 
-This configuration must have, at minimum:
+This configuration must have, at minimum, a 'core' element:
 
 ```
-template:
-    localPath: templates
-    name: development
-
-index:
-    publishPath: website
-
-articles:
-    localPath: articles
-    publishPath: website
-
-pages:
-    localPath: pages
-    publishPath: website
+---
+core:
+  templates:
+    foundin: /Users/mcrilly/.rita/templates/
+    use: development
+  content:
+    foundin: /Users/mcrilly/.rita/content/
+  runtime:
+    debug: true
 ```
 
-The paths here are relative, but they can be absolute, also.
-
-Everything else included inside this file can be anything the user want. What's more, this entire configuration is passed through to the templates as and when articles and pages are being processed. This means you can include fixed information which you might want to be made available in your templates, such as contact details.
-
-Process
--------
-
-Your Markdown articles and pages (*.md) from your configured paths will be taken, processed, and planted as HTML files in the publish path you've stated in the configuration.yaml file. It's really simple.
-
-Rita...
-
-1. Cleans up the existing website publish path;
-1. Produces a list of articles and pages from the respective directories;
-1. Processes metadata in articles and pages;
-1. Copies all of the directories and files, except HTML files, from the template to the publish path;
-1. Builds and writes out the index.html index using the 'index.html' template;
-1. Builds and writes out your articles and pages;
+Everything else included inside this file can be anything the user want. What's more, everything outside the 'core' section is passed through to the templates as and when articles and pages are being processed. This means you can include fixed information which you might want to be made available in your templates, such as contact details.
 
 Metadata
 --------
