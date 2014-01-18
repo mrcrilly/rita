@@ -46,6 +46,7 @@ class Rita:
         self.gather_content()
         self.process_content()
         self.write_html()
+        self.write_index()
 
     def template_environment(self):
         template = self.config['core']['templates']
@@ -64,7 +65,7 @@ class Rita:
             # over it once before exhausting the values, so we do so here
             # and safe the results
             for item in os.walk(contentpath):
-            	self.site['content']['raw'][item[0]] = item[2]
+                self.site['content']['raw'][item[0]] = item[2]
 
             if self.debugging:
                 self.log("contentpath: {0}".format(contentpath))
@@ -80,7 +81,7 @@ class Rita:
 
             md_file_pattern = re.compile('^.*\.md$')
 
-            for path in content:
+            for path in content:    
                 if self.debugging: self.log("path: {}".format(path))
 
                 if len(content[path]) > 0:
@@ -119,7 +120,15 @@ class Rita:
     def write_html(self):
         if self.config and self.site['content']:
             for content in self.site['content']['processed']:
-                print content
+                target = self.site['content']['processed'][content]
+                template = self.jinja.get_template('content.html')
+
+                with open(content.replace('.md', '.html'), 'w+') as fd:
+                    fd.write(template.render(config=self.config, metadata=target['metadata'],
+                                             content=target['html']))
+
+    def write_index(self):
+        pass
 
 if __name__ == "__main__":
     site = Rita()
