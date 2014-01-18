@@ -11,13 +11,6 @@ import sys, os, codecs, re, shutil, errno, markdown, jinja2, yaml
 class Rita:
 
     def __init__(self, config=None):
-        """
-        Setup environment for templates and processing content.
-
-        Arguments:
-        config -- A dictionary with (at minimum) a 'core' key and associated values.
-        """
-
         if not config:
             self.config = yaml.safe_load(open('./configuration.yaml'))
         else:
@@ -28,20 +21,9 @@ class Rita:
                 sys.exit(1)
 
         self.debugging = self.config['core']['runtime']['debug']
-
-        # We start of with an empty site until we populate it
-        self.site = {
-            'content': {
-                'raw': {},
-                'processed': {}
-            }
-        }
+        self.site = { 'content': { 'raw': {}, 'processed': {} } }
 
     def build(self):
-        """
-        This method does it all. It's the only method that needs to be called.
-        """
-
         self.template_environment()
         self.gather_content()
         self.process_content()
@@ -54,16 +36,12 @@ class Rita:
 
         self.jinja = jinja2.Environment(loader=loader)
 
-    def log(self, message, severity="debug"):
-        print "{0}: {1}".format(severity, message)
+    def log(self, message, severity="debug"): print "{0}: {1}".format(severity, message)
 
     def gather_content(self):
         if self.config:
             contentpath = self.config['core']['content']['foundin']
 
-            # Because os.walk() gives us a generator, we can only loop
-            # over it once before exhausting the values, so we do so here
-            # and safe the results
             for item in os.walk(contentpath):
                 self.site['content']['raw'][item[0]] = item[2]
 
@@ -88,7 +66,6 @@ class Rita:
                     if self.debugging: self.log("path: {0}: has files".format(content[path]))
 
                     for file in content[path]:
-                        if self.debugging: self.log("file: {0}".format(file))
                         if md_file_pattern.search(file):
                             if self.debugging: self.log("file matched: {}".format(file))
                             self.process_markdown(os.path.abspath(path), file)
@@ -102,14 +79,15 @@ class Rita:
 
             with codecs.open("{0}/{1}".format(path, file), encoding='utf-8') as fd:
                 target = self.site['content']['processed']["{0}/{1}".format(path, file)] = {
-                    'metadata': {},
-                    'html': ""
-                }
+                    'metadata': {}, 'html': ""
+                    }
 
                 for line in fd:
                     regex = meta_re.search(line)
                     if regex:
                         target['metadata'][regex.group('key').lower()] = regex.group('value')
+                    else:
+                        break
 
                 # reset the file pointer so we can work the file again
                 fd.seek(0)
