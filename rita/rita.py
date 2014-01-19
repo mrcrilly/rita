@@ -96,17 +96,21 @@ class Rita:
                 target['html'] = markdown.markdown(raw_md)
 
     def write_html(self):
-        if self.config and self.site['content']:
+        if self.config and self.site['content']['processed']:
             for content in self.site['content']['processed']:
                 target = self.site['content']['processed'][content]
                 template = self.jinja.get_template('content.html')
 
-                with open(content.replace('.md', '.html'), 'w+') as fd:
-                    fd.write(template.render(config=self.config, metadata=target['metadata'],
-                                             content=target['html']))
+                with open(re.sub('\.md$', '.html', content), 'w+') as fd:
+                    fd.write(template.render(config=self.config, content=target))
 
     def write_index(self):
-        pass
+        if self.config and self.site['content']['processed']:
+            template = self.jinja.get_template('index.html')
+
+            with open("{}/index.html".format(self.config['core']['content']['foundin']), 'w+') as fd:
+                fd.write(template.render(config=self.config, content=self.site['content']['processed']))
+
 
 if __name__ == "__main__":
     site = Rita()
