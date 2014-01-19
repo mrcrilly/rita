@@ -6,7 +6,7 @@ core:
   content:
     foundin: /Users/mcrilly/.rita/content/
   runtime:
-    debug: true
+    debug: false
 
 site:
   blog_title: mtc
