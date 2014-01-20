@@ -1,0 +1,19 @@
+---
+core:
+  templates:
+    foundin: /Users/mcrilly/.rita/templates/
+    use: development
+  content:
+    foundin: /Users/mcrilly/.rita/content/
+  runtime:
+    debug: false
+
+site:
+  blog_title: mtc
+  author: Michael Crilly
+  tld: http://mcrilly.me
+  contact:
+    email: michael@mcrilly.me
+    twitter: "@mrmcrilly"
+    irc: movedx/Freenode/##security
+

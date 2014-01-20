@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+#
+# meow.py
+# Simple client to use the Rita class.
+#
+# Michael Crilly <michael@mcrilly.me>
+# @mrmcrilly
+
+import sys
+import os
+
+# Dependencies
+import yaml
+import argparse
+
+# Append the root directory to the path
+# so we can test Meow as we work on her
+sys.path.append(os.path.dirname(sys.path[0]))
+
+from rita import rita
+
+def meow(configuration_file):
+    if configuration_file:
+        config = yaml.load(open(configuration_file))
+
+        site = rita.Rita(config)
+        site.build()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(epilog="Meow!")
+    
+    parser.add_argument('-c', default='~/.rita/rita.conf',
+                        required=True,
+                        help="Rita's config file",
+                        metavar='config',
+                        dest='config')
+
+    args = parser.parse_args()
+
+    if args.config and os.path.isfile(args.config):
+        meow(args.config)
+    else:
+        raise ArgumentError("Configuration file given isn't a valid file.")
+
