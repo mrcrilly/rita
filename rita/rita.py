@@ -6,7 +6,18 @@
 # Michael Crilly <michael@mcrilly.me>
 # @mrmcrilly
 
-import sys, os, codecs, re, shutil, errno, markdown, jinja2, yaml
+import sys
+import os
+import codecs
+import re
+import shutil
+import errno
+
+# External libraries/dependencies
+import markdown
+import jinja2
+import yaml
+
 
 class Rita:
 
@@ -21,7 +32,7 @@ class Rita:
                 sys.exit(1)
 
         self.debugging = self.config['core']['runtime']['debug']
-        self.site = { 'content': { 'raw': {}, 'processed': {} } }
+        self.site = {'content': {'raw': {}, 'processed': {}}}
 
     def build(self):
         self.template_environment()
@@ -32,11 +43,13 @@ class Rita:
 
     def template_environment(self):
         template = self.config['core']['templates']
-        loader   = jinja2.FileSystemLoader("{0}/{1}".format(template['foundin'], template['use']))
+        loader = jinja2.FileSystemLoader("{0}/{1}".format(template['foundin'],
+                                         template['use']))
 
         self.jinja = jinja2.Environment(loader=loader)
 
-    def log(self, message, severity="debug"): print "{0}: {1}".format(severity, message)
+    def log(self, message, severity="debug"):
+        print "{0}: {1}".format(severity, message)
 
     def gather_content(self):
         if self.config:
@@ -47,7 +60,7 @@ class Rita:
 
             if self.debugging:
                 self.log("contentpath: {0}".format(contentpath))
-                self.log("raw content: {0}".format(self.site['content']['raw']))
+                self.log("raw: {0}".format(self.site['content']['raw']))
         else:
             self.log("no configuration found/defined.", "error")
             sys.exit(1)
@@ -55,19 +68,26 @@ class Rita:
     def process_content(self):
         if self.config:
             content = self.site['content']['raw']
-            if self.debugging: self.log("content: {}".format([i for i in content]))
+
+            if self.debugging:
+                self.log("content: {}".format([i for i in content]))
 
             md_file_pattern = re.compile('^.*\.md$')
 
-            for path in content:    
-                if self.debugging: self.log("path: {}".format(path))
+            for path in content:
+
+                if self.debugging:
+                    self.log("path: {}".format(path))
 
                 if len(content[path]) > 0:
-                    if self.debugging: self.log("path: {0}: has files".format(content[path]))
+                    if self.debugging:
+                        self.log("path: {0}: has files".format(content[path]))
 
                     for file in content[path]:
                         if md_file_pattern.search(file):
-                            if self.debugging: self.log("file matched: {}".format(file))
+                            if self.debugging:
+                                self.log("file matched: {}".format(file))
+
                             self.process_markdown(os.path.abspath(path), file)
         else:
             self.log("no configuration or raw content.", "error")
@@ -75,12 +95,14 @@ class Rita:
 
     def process_markdown(self, path, file):
         if self.config and self.site['content']:
-            meta_re = re.compile('^(?P<key>[A-Za-z0-9_-]+?)[ ]?\:[ ]?(?P<value>.*)$')
+            key_value = r'^(?P<key>[A-Za-z0-9_-]+?)[ ]?\:[ ]?(?P<value>.*)$'
+            meta_re = re.compile(key_value)
 
-            with codecs.open("{0}/{1}".format(path, file), encoding='utf-8') as fd:
+            content = "{0}/{1}".format(path, file)
+            with codecs.open(content, encoding='utf-8') as fd:
                 target = self.site['content']['processed']["{0}/{1}".format(path, file)] = {
                     'metadata': {}, 'html': ""
-                    }
+                }
 
                 for line in fd:
                     regex = meta_re.search(line)
@@ -92,7 +114,7 @@ class Rita:
                 # reset the file pointer so we can work the file again
                 fd.seek(0)
 
-                raw_md = ''.join([str(x) for x in fd.readlines()[ len(target['metadata']) + 1: ]])
+                raw_md = ''.join([str(x) for x in fd.readlines()[len(target['metadata']) + 1:]])
                 target['html'] = markdown.markdown(raw_md)
 
     def write_html(self):
@@ -110,8 +132,3 @@ class Rita:
 
             with open("{}/index.html".format(self.config['core']['content']['foundin']), 'w+') as fd:
                 fd.write(template.render(config=self.config, content=self.site['content']['processed']))
-
-
-if __name__ == "__main__":
-    site = Rita()
-    site.build()
