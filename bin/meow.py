@@ -1,12 +1,10 @@
 import sys
 import os
 
-libdir = os.path.join(os.path.dirname(sys.path[0]), '../lib/')
-sys.path.append(libdir)
+sys.path.append(os.path.dirname(sys.path[0]))
 
-# import rita
+from rita import rita
 
 if __name__ == '__main__':
-	# r = Rita()
-	# print r 
-	print sys.path
+	r = rita.Rita()
+	print r 
