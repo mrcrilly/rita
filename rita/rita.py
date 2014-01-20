@@ -16,20 +16,18 @@ import errno
 # External libraries/dependencies
 import markdown
 import jinja2
-import yaml
-
 
 class Rita:
 
     def __init__(self, config=None):
         if not config:
-            self.config = yaml.safe_load(open('./configuration.yaml'))
+            raise Exception("I need a valid configuration...")
         else:
+            print config
             if 'core' in config:
                 self.config = config
             else:
-                self.log("Your provided configuration is invalid.", "error")
-                sys.exit(1)
+                raise Exception("'Core' block missing from configuration.")
 
         self.debugging = self.config['core']['runtime']['debug']
         self.site = {'content': {'raw': {}, 'processed': {}}}
