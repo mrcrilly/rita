@@ -10,21 +10,22 @@
 import sys
 import os
 
+# Append the repository's root directly to our
+# search path so we can use meow without a system-wide
+# installation
+sys.path.append(os.path.dirname(sys.path[0]))
+
 # Dependencies
 import yaml
 import argparse
 
-# Append the root directory to the path
-# so we can test Meow as we work on her
-sys.path.append(os.path.dirname(sys.path[0]))
-
-from rita import rita
+from rita.rita import Rita
 
 def meow(configuration_file):
     if configuration_file:
         config = yaml.load(open(configuration_file))
 
-        site = rita.Rita(config)
+        site = Rita(config)
         site.build()
 
 if __name__ == '__main__':
