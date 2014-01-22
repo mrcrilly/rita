@@ -10,23 +10,43 @@ Dependencies
 
 * Jinja2
 * Markdown
-* PyYaml
 
 These can be installed via pip.
+
+```
+pip install Jinja2 Markdown
+```
+
+If you choose to use Meow, the basic CLI client, then you will also need YaML:
+
+```
+pip install PyYaml
+```
 
 Usage
 -----
 
-Execution is simple. There are no command line flags:
+Rita is a library/class, so she requires a client to use. This repository has a bin/ directory which ships with "Meow", a simple CLI tool that will allow you to easily utilise Rita. If you write to your own, then she is really easy to utilise.
 
-$ python rita.py
+Taking the code from Meow:
 
-Configuration is read from a single file.
+```
+from rita.rita import Rita
+
+def meow(configuration_file):
+    if configuration_file:
+        config = yaml.load(open(configuration_file))
+
+        site = Rita(config)
+        site.build()
+```
+
+We simply read in a configuration file, which can come from anywhere or any format, convert it to a Python dictionary, and then pass this to Rita. At minimum, Rita expects to see a minimal amount of configuration inside of a hash called "core". More details to follow on this.
 
 Configuration
 -------------
 
-There is a 'configuration.yaml' file located in the same directory as 'rita.py'. This file is used to configure the location of various elements:
+There is a 'configuration.yaml' file located in the etc/ directory. This file is used as an example lto configure the location of various elements:
 
 * Templates
 * Content
